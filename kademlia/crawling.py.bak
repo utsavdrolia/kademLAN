@@ -80,7 +80,7 @@ class ValueSpiderCrawl(SpiderCrawl):
         """
         toremove = []
         foundValues = []
-        for peerid, response in list(responses.items()):
+        for peerid, response in responses.items():
             response = RPCFindResponse(response)
             if not response.happened():
                 toremove.append(peerid)
@@ -131,7 +131,7 @@ class NodeSpiderCrawl(SpiderCrawl):
         Handle the result of an iteration in _find.
         """
         toremove = []
-        for peerid, response in list(responses.items()):
+        for peerid, response in responses.items():
             response = RPCFindResponse(response)
             if not response.happened():
                 toremove.append(peerid)
