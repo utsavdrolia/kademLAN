@@ -3,11 +3,11 @@ import heapq
 
 
 class Node:
-    def __init__(self, id, ip=None, port=None):
-        self.id = id
+    def __init__(self, id_, ip=None, port=None):
+        self.id = id_
         self.ip = ip
         self.port = port
-        self.long_id = long(id.encode('hex'), 16)
+        self.long_id = int(id_, 16)
 
     def sameHomeAs(self, node):
         return self.ip == node.ip and self.port == node.port
@@ -29,6 +29,9 @@ class Node:
 
     def __str__(self):
         return "%s:%s" % (self.ip, str(self.port))
+
+    def __lt__(self, other):
+        return self.long_id < other.long_id
 
 
 class NodeHeap(object):

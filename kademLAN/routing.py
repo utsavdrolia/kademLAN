@@ -3,7 +3,7 @@ import time
 import operator
 from collections import OrderedDict
 
-from kademlia.utils import OrderedSet, sharedPrefix
+from kademLAN.utils import OrderedSet, sharedPrefix
 
 
 class KBucket(object):
@@ -18,13 +18,13 @@ class KBucket(object):
         self.lastUpdated = time.time()
 
     def getNodes(self):
-        return self.nodes.values()
+        return list(self.nodes.values())
 
     def split(self):
         midpoint = self.range[1] - ((self.range[1] - self.range[0]) / 2)
         one = KBucket(self.range[0], midpoint, self.ksize)
         two = KBucket(midpoint + 1, self.range[1], self.ksize)
-        for node in self.nodes.values():
+        for node in list(self.nodes.values()):
             bucket = one if node.long_id <= midpoint else two
             bucket.nodes[node.id] = node
         return (one, two)
@@ -64,11 +64,11 @@ class KBucket(object):
         return True
 
     def depth(self):
-        sp = sharedPrefix([n.id for n in self.nodes.values()])
+        sp = sharedPrefix([n.id for n in list(self.nodes.values())])
         return len(sp)
 
     def head(self):
-        return self.nodes.values()[0]
+        return list(self.nodes.values())[0]
 
     def __getitem__(self, id):
         return self.nodes.get(id, None)
@@ -89,7 +89,7 @@ class TableTraverser(object):
     def __iter__(self):
         return self
 
-    def next(self):
+    def __next__(self):
         """
         Pop an item from the left subtree, then right, then left, etc.
         """
@@ -99,12 +99,12 @@ class TableTraverser(object):
         if self.left and len(self.leftBuckets) > 0:
             self.currentNodes = self.leftBuckets.pop().getNodes()
             self.left = False
-            return self.next()
+            return next(self)
 
         if len(self.rightBuckets) > 0:
             self.currentNodes = self.rightBuckets.pop().getNodes()
             self.left = True
-            return self.next()
+            return next(self)
 
         raise StopIteration
 
@@ -177,4 +177,4 @@ class RoutingTable(object):
             if len(nodes) == k:
                 break
 
-        return map(operator.itemgetter(1), heapq.nsmallest(k, nodes))
+        return list(map(operator.itemgetter(1), heapq.nsmallest(k, nodes)))

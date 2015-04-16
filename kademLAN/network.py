@@ -6,14 +6,15 @@ import pickle
 
 from twisted.internet.task import LoopingCall
 from twisted.internet import defer, reactor, task
+from kademLAN.discovery import Discover
 
-from kademlia.log import Logger
-from kademlia.protocol import KademliaProtocol
-from kademlia.utils import deferredDict, digest
-from kademlia.storage import ForgetfulStorage
-from kademlia.node import Node
-from kademlia.crawling import ValueSpiderCrawl
-from kademlia.crawling import NodeSpiderCrawl
+from kademLAN.log import Logger
+from kademLAN.protocol import KademliaProtocol
+from kademLAN.utils import deferredDict, digest
+from kademLAN.storage import ForgetfulStorage
+from kademLAN.node import Node
+from kademLAN.crawling import ValueSpiderCrawl
+from kademLAN.crawling import NodeSpiderCrawl
 
 
 class Server(object):
@@ -22,7 +23,7 @@ class Server(object):
     to start listening as an active node on the network.
     """
 
-    def __init__(self, ksize=20, alpha=3, id=None, storage=None):
+    def __init__(self, port, ksize=20, alpha=3, id=None, storage=None):
         """
         Create a server instance.  This will start listening on the given port.
 
@@ -30,8 +31,13 @@ class Server(object):
             ksize (int): The k parameter from the paper
             alpha (int): The alpha parameter from the paper
             id: The id for this node on the network.
-            storage: An instance that implements :interface:`~kademlia.storage.IStorage`
+            storage: An instance that implements :interface:`~kademLAN.storage.IStorage`
         """
+        self.bootstrapped = False
+        self.bootstrap_cb = ()
+        self.discovered_peers = []
+        self.port = port
+        self.discover = Discover(self.port)
         self.ksize = ksize
         self.alpha = alpha
         self.log = Logger(system=self)
@@ -39,8 +45,8 @@ class Server(object):
         self.node = Node(id or digest(random.getrandbits(255)))
         self.protocol = KademliaProtocol(self.node, self.storage, ksize)
         self.refreshLoop = LoopingCall(self.refreshTable).start(3600)
-
-    def listen(self, port):
+        self.get_peers_loop = LoopingCall(self.get_peers).start(5)
+    def listen(self, cb, *args):
         """
         Start listening on the given port.
 
@@ -48,7 +54,25 @@ class Server(object):
 
             reactor.listenUDP(port, server.protocol)
         """
-        return reactor.listenUDP(port, self.protocol)
+        self.bootstrap_cb = (cb, args)
+        self.discover.start()
+        return reactor.listenUDP(self.port, self.protocol)
+
+    def get_peers(self):
+        peers = self.discover.get_peers()
+        peercopy = []
+        for p in peers:
+            if p not in self.discovered_peers:
+                peercopy.append(p)
+        if len(peercopy) != 0:
+            self.log.debug("Found peers:{}".format(peercopy))
+            self.bootstrap(peercopy).addCallback(self.post_bootstrap)
+            self.discovered_peers.extend(peercopy)
+
+    def post_bootstrap(self, found):
+        if not self.bootstrapped:
+            self.bootstrap_cb[0](*self.bootstrap_cb[1])
+            self.bootstrapped = True
 
     def refreshTable(self):
         """
@@ -94,11 +118,12 @@ class Server(object):
         """
         # if the transport hasn't been initialized yet, wait a second
         if self.protocol.transport is None:
+            self.log.debug("Transport not init")
             return task.deferLater(reactor, 1, self.bootstrap, addrs)
 
         def initTable(results):
             nodes = []
-            for addr, result in results.items():
+            for addr, result in list(results.items()):
                 if result[0]:
                     nodes.append(Node(result[1], addr[0], addr[1]))
             spider = NodeSpiderCrawl(self.protocol, self.node, nodes, self.ksize, self.alpha)
@@ -106,7 +131,9 @@ class Server(object):
 
         ds = {}
         for addr in addrs:
+            self.log.debug("Pinging Peers:{}".format(addr))
             ds[addr] = self.protocol.ping(addr, self.node.id)
+        self.log.debug("Pinged All peers:{}".format(addrs))
         return deferredDict(ds).addCallback(initTable)
 
     def inetVisibleIP(self):
@@ -149,7 +176,7 @@ class Server(object):
         dkey = digest(key)
 
         def store(nodes):
-            self.log.info("setting '%s' on %s" % (key, map(str, nodes)))
+            self.log.info("setting '%s' on %s" % (key, list(map(str, nodes))))
             ds = [self.protocol.callStore(node, dkey, value) for node in nodes]
             return defer.DeferredList(ds).addCallback(self._anyRespondSuccess)
 
@@ -213,3 +240,6 @@ class Server(object):
         loop = LoopingCall(self.saveState, fname)
         loop.start(frequency)
         return loop
+
+    def stop(self):
+        self.discover.stop()

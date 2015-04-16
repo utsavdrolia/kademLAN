@@ -10,7 +10,8 @@ from twisted.internet import defer
 def digest(s):
     if not isinstance(s, str):
         s = str(s)
-    return hashlib.sha1(s).digest()
+    s = s.encode()
+    return hashlib.sha1(s).hexdigest()
 
 
 def deferredDict(d):
@@ -34,8 +35,8 @@ def deferredDict(d):
             rvalue[names[index]] = results[index][1]
         return rvalue
 
-    dl = defer.DeferredList(d.values())
-    return dl.addCallback(handle, d.keys())
+    dl = defer.DeferredList(list(d.values()))
+    return dl.addCallback(handle, list(d.keys()))
 
 
 class OrderedSet(list):
@@ -64,7 +65,7 @@ def sharedPrefix(args):
     returns 'blah'.
     """
     i = 0
-    while i < min(map(len, args)):
+    while i < min(list(map(len, args))):
         if len(set(map(operator.itemgetter(i), args))) != 1:
             break
         i += 1

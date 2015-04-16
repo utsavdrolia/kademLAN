@@ -1,6 +1,6 @@
 from twisted.internet import reactor
 from twisted.python import log
-from kademlia.network import Server
+from kademLAN.network import Server
 import sys
 
 log.startLogging(sys.stdout)
