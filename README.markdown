@@ -13,7 +13,7 @@ This library aims to be as close to a reference implementation of the [Kademlia 
 ## Installation
 
 ```
-pip install https://github.com/utsavdrolia/kademLAN/archive/convertingTo3.zip
+pip install https://github.com/utsavdrolia/kademLAN/archive/master.zip
 ```
 
 ## Usage
