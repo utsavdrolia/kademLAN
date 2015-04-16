@@ -91,7 +91,7 @@ class Discover(object):
             time.sleep(0.001)
             self._terminated = True
             # Give time for thread to exit
-            time.sleep(1)
+            time.sleep(5)
             self.poller.unregister(self.beacon_socket)
             self.beacon.destroy()
             self.beacon = None
@@ -158,13 +158,8 @@ class Discover(object):
     # This is the actor that runs a single node; it uses one thread, creates
     # a zyre_node object at start and destroys that when finishing.
     def run(self):
-
-        reap_at = time.time() + REAP_INTERVAL
         while not self._terminated:
-            timeout = reap_at - time.time()
-            if timeout < 0:
-                timeout = 0
-            items = dict(self.poller.poll(timeout * 1000))
+            items = dict(self.poller.poll(1000))
             if self.beacon_socket in items and items[self.beacon_socket] == zmq.POLLIN:
                 self.recv_beacon()
 

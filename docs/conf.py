@@ -58,8 +58,8 @@ copyright = u'2015, Brian Muller'
 #
 # The short X.Y version.
 sys.path.insert(0, os.path.abspath('..'))
-import kademlia
-version = kademlia.version
+import kademLAN
+version = kademLAN.version
 # The full version, including alpha/beta/rc tags.
 release = version
 
@@ -233,7 +233,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('index', 'kademlia', u'Kademlia Documentation',
+    ('index', 'kademLAN', u'Kademlia Documentation',
      [u'Brian Muller'], 1)
 ]
 

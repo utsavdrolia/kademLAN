@@ -30,6 +30,9 @@ class Node:
     def __str__(self):
         return "%s:%s" % (self.ip, str(self.port))
 
+    def __lt__(self, other):
+        return self.long_id < other.long_id
+
 
 class NodeHeap(object):
     """

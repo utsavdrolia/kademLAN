@@ -4,10 +4,10 @@ from twisted.internet import defer
 
 from rpcudp.protocol import RPCProtocol
 
-from kademlia.node import Node
-from kademlia.routing import RoutingTable
-from kademlia.log import Logger
-from kademlia.utils import digest
+from kademLAN.node import Node
+from kademLAN.routing import RoutingTable
+from kademLAN.log import Logger
+from kademLAN.utils import digest
 
 
 class KademliaProtocol(RPCProtocol):
@@ -43,11 +43,11 @@ class KademliaProtocol(RPCProtocol):
         return True
 
     def rpc_find_node(self, sender, nodeid, key):
-        self.log.info("finding neighbors of %i in local table" % long(nodeid.encode('hex'), 16))
+        self.log.info("finding neighbors of %i in local table" % int(nodeid, 16))
         source = Node(nodeid, sender[0], sender[1])
         self.router.addContact(source)
         node = Node(key)
-        return map(tuple, self.router.findNeighbors(node, exclude=source))
+        return list(map(tuple, self.router.findNeighbors(node, exclude=source)))
 
     def rpc_find_value(self, sender, nodeid, key):
         source = Node(nodeid, sender[0], sender[1])
@@ -91,7 +91,7 @@ class KademliaProtocol(RPCProtocol):
         on the new node (per section 2.5 of the paper)
         """
         ds = []
-        for key, value in self.storage.iteritems():
+        for key, value in self.storage.items():
             keynode = Node(digest(key))
             neighbors = self.router.findNeighbors(keynode)
             if len(neighbors) > 0:

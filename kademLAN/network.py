@@ -6,15 +6,15 @@ import pickle
 
 from twisted.internet.task import LoopingCall
 from twisted.internet import defer, reactor, task
-from kademlia.discovery import Discover
+from kademLAN.discovery import Discover
 
-from kademlia.log import Logger
-from kademlia.protocol import KademliaProtocol
-from kademlia.utils import deferredDict, digest
-from kademlia.storage import ForgetfulStorage
-from kademlia.node import Node
-from kademlia.crawling import ValueSpiderCrawl
-from kademlia.crawling import NodeSpiderCrawl
+from kademLAN.log import Logger
+from kademLAN.protocol import KademliaProtocol
+from kademLAN.utils import deferredDict, digest
+from kademLAN.storage import ForgetfulStorage
+from kademLAN.node import Node
+from kademLAN.crawling import ValueSpiderCrawl
+from kademLAN.crawling import NodeSpiderCrawl
 
 
 class Server(object):
@@ -31,7 +31,7 @@ class Server(object):
             ksize (int): The k parameter from the paper
             alpha (int): The alpha parameter from the paper
             id: The id for this node on the network.
-            storage: An instance that implements :interface:`~kademlia.storage.IStorage`
+            storage: An instance that implements :interface:`~kademLAN.storage.IStorage`
         """
         self.bootstrapped = False
         self.bootstrap_cb = ()
@@ -70,7 +70,9 @@ class Server(object):
             self.discovered_peers.extend(peercopy)
 
     def post_bootstrap(self, found):
-        self.bootstrap_cb[0](self.bootstrap_cb[1])
+        if not self.bootstrapped:
+            self.bootstrap_cb[0](*self.bootstrap_cb[1])
+            self.bootstrapped = True
 
     def refreshTable(self):
         """
@@ -116,6 +118,7 @@ class Server(object):
         """
         # if the transport hasn't been initialized yet, wait a second
         if self.protocol.transport is None:
+            self.log.debug("Transport not init")
             return task.deferLater(reactor, 1, self.bootstrap, addrs)
 
         def initTable(results):
@@ -130,6 +133,7 @@ class Server(object):
         for addr in addrs:
             self.log.debug("Pinging Peers:{}".format(addr))
             ds[addr] = self.protocol.ping(addr, self.node.id)
+        self.log.debug("Pinged All peers:{}".format(addrs))
         return deferredDict(ds).addCallback(initTable)
 
     def inetVisibleIP(self):

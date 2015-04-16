@@ -1,8 +1,8 @@
 from collections import Counter
 
-from kademlia.log import Logger
-from kademlia.utils import deferredDict
-from kademlia.node import Node, NodeHeap
+from kademLAN.log import Logger
+from kademLAN.utils import deferredDict
+from kademLAN.node import Node, NodeHeap
 
 
 class SpiderCrawl(object):
@@ -14,9 +14,9 @@ class SpiderCrawl(object):
         Create a new C{SpiderCrawl}er.
 
         Args:
-            protocol: A :class:`~kademlia.protocol.KademliaProtocol` instance.
-            node: A :class:`~kademlia.node.Node` representing the key we're looking for
-            peers: A list of :class:`~kademlia.node.Node` instances that provide the entry point for the network
+            protocol: A :class:`~kademLAN.protocol.KademliaProtocol` instance.
+            node: A :class:`~kademLAN.node.Node` representing the key we're looking for
+            peers: A list of :class:`~kademLAN.node.Node` instances that provide the entry point for the network
             ksize: The value for k based on the paper
             alpha: The value for alpha based on the paper
         """
@@ -80,7 +80,7 @@ class ValueSpiderCrawl(SpiderCrawl):
         """
         toremove = []
         foundValues = []
-        for peerid, response in responses.items():
+        for peerid, response in list(responses.items()):
             response = RPCFindResponse(response)
             if not response.happened():
                 toremove.append(peerid)
@@ -131,7 +131,7 @@ class NodeSpiderCrawl(SpiderCrawl):
         Handle the result of an iteration in _find.
         """
         toremove = []
-        for peerid, response in responses.items():
+        for peerid, response in list(responses.items()):
             response = RPCFindResponse(response)
             if not response.happened():
                 toremove.append(peerid)
