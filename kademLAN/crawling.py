@@ -112,10 +112,10 @@ class ValueSpiderCrawl(SpiderCrawl):
             self.log.warning("Got multiple values for key %i: %s" % args)
         value = valueCounts.most_common(1)[0][0]
 
-        peerToSaveTo = self.nearestWithoutValue.popleft()
-        if peerToSaveTo is not None:
-            d = self.protocol.callStore(peerToSaveTo, self.node.id, value)
-            return d.addCallback(lambda _: value)
+        # peerToSaveTo = self.nearestWithoutValue.popleft()
+        # if peerToSaveTo is not None:
+        #     d = self.protocol.callStore(peerToSaveTo, self.node.id, value)
+        #     return d.addCallback(lambda _: value)
         return value
 
 
