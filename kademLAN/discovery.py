@@ -94,8 +94,8 @@ class Discover(object):
             time.sleep(5)
             self.poller.unregister(self.beacon_socket)
             self.beacon.destroy()
-            self.beacon = None
-            self.beacon_socket = None
+#            self.beacon = None
+#            self.beacon_socket = None
 
         self.beacon_port = 0
 
