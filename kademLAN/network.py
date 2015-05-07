@@ -44,7 +44,7 @@ class Server(object):
         self.storage = storage or ForgetfulStorage()
         self.node = Node(id or digest(random.getrandbits(255)))
         self.protocol = KademliaProtocol(self.node, self.storage, ksize)
-        self.refreshLoop = LoopingCall(self.refreshTable).start(3600)
+        #self.refreshLoop = LoopingCall(self.refreshTable).start(3600)
         self.get_peers_loop = LoopingCall(self.get_peers).start(5)
     def listen(self, cb, *args):
         """
