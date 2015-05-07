@@ -93,7 +93,8 @@ class Discover(object):
             # Give time for thread to exit
             time.sleep(5)
             self.poller.unregister(self.beacon_socket)
-            self.beacon.destroy()
+            self.beacon.send_unicode("$TERM")
+#            self.beacon.destroy()
 #            self.beacon = None
 #            self.beacon_socket = None
 
